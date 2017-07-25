@@ -1,0 +1,26 @@
+[
+  {
+    "Symbol": "WIX",
+    "Name": "Wix.com Ltd.",
+    "Change": "0.750000",
+    "PercentChange": "+1.51%",
+    "tempChange": 343,
+    "LastTradePriceOnly": "76.099998"
+  },
+  {
+    "Symbol": "MSFT",
+    "Name": "Microsoft Corporation",
+    "PercentChange": "-2.09%",
+    "Change": "-0.850006",
+    "tempChange": 3493,
+    "LastTradePriceOnly": "69.620003"
+  },
+  {
+    "Symbol": "YHOO",
+    "Name": "Yahoo! Inc.",
+    "Change": "4.279999",
+    "PercentChange": "+1.11%",
+    "tempChange": 143,
+    "LastTradePriceOnly": "50.599998"
+  }
+]

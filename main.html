@@ -5,135 +5,88 @@
     <title>stokr</title>
     <link rel="stylesheet" href="styles/main.css">
     <link rel="stylesheet" href="assets/font-icons/css/Glyphter.css">
+    <style>
+      @font-face {
+        font-family: "HelveticaNeueW01-55Roma";
+        src: url("assets/fonts/HelveticaNeueW01-55Roman.eot?#iefix");
+        src: url("assets/fonts/HelveticaNeueW01-55Roman.eot?#iefix") format("eot"),
+        url("assets/fonts/HelveticaNeueW01-55Roman.woff") format("woff"),
+        url("assets/fonts/HelveticaNeueW01-55Roman.ttf") format("truetype"),
+        url("assets/fonts/HelveticaNeueW01-55Roman.svg#helvetica_neue") format("svg");
+      }
+
+    </style>
   </head>
   <body>
     <div class="app">
       <header>
-        <span class="stokr-header">stokr</span>
-        <ul class="app-nav-buttons">
-          <li>
-            <button><img src="assets/svg/search.svg" class="search-button"></button>
-          </li>
-          <li>
-            <button><img src="assets/svg/refresh.svg" class="refresh-button"></button>
-          </li>
-          <li>
-            <button><img src="assets/svg/filter.svg" class="filter-button"></button>
-          </li>
-          <li>
-            <button><img src="assets/svg/settings.svg" class="settings-button"></button>
-          </li>
-        </ul>
+        <span class="stokr-header">STOKR</span>
+        <nav>
+          <ul class="app-nav-buttons">
+            <li>
+              <button class="search-button" data-id="search-button"><img src="assets/svg/search.svg"
+                                                                         data-type="search-button"></button>
+            </li>
+            <li>
+              <button class="refresh-button" data-id="refresh-button"><img src="assets/svg/refresh.svg"
+                                                                           data-type="refresh-button"></button>
+            </li>
+            <li>
+              <button class="filter-button" data-id="filter-button"><img src="assets/svg/filter.svg"
+                                                                         data-type="filter-nav-button"></button>
+            </li>
+            <li>
+              <button class="settings-button" data-id="settings-button"><img src="assets/svg/settings.svg"
+                                                                             data-type="settings-button"></button>
+            </li>
+          </ul>
+        </nav>
       </header>
-      <main>
+      <div class="filter-header display-none">
+        <hr>
+        <div class="filter-header-content">
+          <ul class="filter-params">
+            <li class="filter-param short-filter-param">
+              <label for="Name-filter">By Name</label>
+              <input type="text" id="Name-filter"/>
+            </li>
+            <li class="filter-param short-filter-param">
+              <label for="gain-filter">By Gain</label>
+              <!--<input list="gain-filter">-->
 
+              <!--<datalist id="gain-filter">-->
+                <!--<option value="Internet Explorer">-->
+                <!--<option value="Firefox">-->
+                <!--<option value="Chrome">-->
+                <!--<option value="Opera">-->
+                <!--<option value="Safari">-->
+              <!--</datalist>-->
+              <select id="gain-filter">
+                <option value="gaining">Gaining</option>
+                <option value="losing">Losing</option>
+                <option value="all">All</option>
+              </select>
+              <!--<input type="text" id="gain-filter"/>-->
+            </li>
+            <li class="filter-param long-filter-param">
+              <label for="range-from-filter">By Range: From</label>
+              <input type="text" id="range-from-filter"/>
+            </li>
+            <li class="filter-param long-filter-param">
+              <label for="range-to-filter">By Range: To</label>
+              <input type="text" id="range-to-filter"/>
+            </li>
+          </ul>
+          <button class="apply-filter-button" data-type="apply-filter-button">Apply</button>
+        </div>
+      </div>
+      <main>
       </main>
     </div>
   </body>
 
-  <script>
+  <script src="model.js"></script>
+  <script src="view.js"></script>
+  <script src="controller.js"></script>
 
-    const clickEventHandlers = {
-      'change-button': changeButtonClick,
-      'up-down-buttons': arrowButtonsClick
-    }
-
-    let changePercentageView = true;
-
-    const stockData =
-      [
-        {
-          "Symbol": "WIX",
-          "Name": "Wix.com Ltd.",
-          "Change": "0.750000",
-          "PercentChange": "+1.51%",
-          "LastTradePriceOnly": "76.099998"
-        },
-        {
-          "Symbol": "MSFT",
-          "Name": "Microsoft Corporation",
-          "PercentChange": "-2.09%",
-          "Change": "-0.850006",
-          "LastTradePriceOnly": "69.620003"
-        },
-        {
-          "Symbol": "YHOO",
-          "Name": "Yahoo! Inc.",
-          "Change": "45464.279999",
-          "PercentChange": "+1.11%",
-          "LastTradePriceOnly": "50.599998"
-        }
-      ]
-
-
-//    let stocksListOrder = ['WIX','MSFT','YHOO'];
-
-    function renderMain() {
-      const mainElement = document.querySelector('main');
-      mainElement.innerHTML =
-        `<ul class="stock-list">
-          ${stockData.map(createLi).join('')}
-        </ul>`;
-      mainElement.querySelector('li:first-of-type .up-button').setAttribute("disabled","true");
-      mainElement.querySelector('li:last-of-type .down-button').setAttribute("disabled","true");
-    }
-
-    function createLi(stockItem,index) {
-      const lastTradePrice = Math.trunc(stockItem.LastTradePriceOnly * 100) / 100;
-      const stockChange =
-        changePercentageView ? stockItem.PercentChange : `${(Math.trunc(stockItem.Change * 10)) / 10}B`;
-      const ChangeClass = stockItem.PercentChange[0] === '+' ? 'change-plus' : 'change-minus';
-
-      let li =
-        `<li>
-      <h2 class="symbol-and-name">
-        <span class="symbol">${stockItem.Symbol}</span>
-        <span class="stock-name">${stockItem.Name}</span>
-      </h2>
-      <div class="stock-data">
-        <span class="price">${lastTradePrice}</span>
-        <button data-type="change-button" class="change ${ChangeClass}">${stockChange}</button>
-        <div class="up-down-buttons">
-          <button data-id="${stockItem.Symbol}" data-type="up-down-buttons" class="up-button icon-arrow"></button>
-          <button data-id="${stockItem.Symbol}" data-type="up-down-buttons" class="down-button icon-arrow"></button>
-        </div>
-      </div>
-     </li>`;
-
-      return li;
-    }
-
-    function addEvents() {
-      const mainElement = document.querySelector('main');
-      mainElement.addEventListener('click', function (event) {
-        const targetDataType = event.target.getAttribute('data-type');
-        clickEventHandlers[targetDataType](event);
-      })
-    }
-
-    function arrowButtonsClick(event) {
-
-      const symbol = event.target.getAttribute('data-id');
-      const index = stockData.findIndex(x => x.Symbol === symbol);
-      console.log(`index ${index}`);
-      const switchWith = event.target.classList.contains('up-button')? index - 1 : index + 1 ;
-
-      let temp = stockData[switchWith];
-      stockData[switchWith] = stockData[index];
-      stockData[index] = temp;
-
-      renderMain();
-    }
-
-
-    function changeButtonClick(event) {
-      changePercentageView = !changePercentageView;
-      console.log(`changePercentageView: ${changePercentageView} `);
-      renderMain();
-    }
-
-    renderMain();
-    addEvents();
-
-  </script>
 </html>
