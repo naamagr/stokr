@@ -11,6 +11,7 @@
     'change-button': changeButtonClick,
     'up-down-buttons': arrowButtonsClick,
     'filter-nav-button': filterNavButtonClick,
+    'refresh-nav-button' : refreshButtonClick,
     'apply-filter-button' : applyFilterStocks
   };
 
@@ -21,13 +22,14 @@
     filterFields.byGain = gainFilterElement.options[gainFilterElement.selectedIndex].value;
     filterFields.byRangeFrom = document.querySelector('input[id="range-from-filter"]').value;
     filterFields.byRangeTo = document.querySelector('input[id="range-to-filter"]').value;
-    Controller.filterStocks(filterFields);
+    debugger;
+    const filteredStocks = Controller.filterStocks(filterFields);
+    Controller.renderMain(filteredStocks);
   }
 
   function createList(stocks,changeMode){
     console.log(`createList stocks ${stocks}`);
     return `${stocks.map ( function(stock) {
-      // let changeMode = window.Stockr.controller.getChangeMode(state.ui.currentChangeViewIndex);
       return createLi(stock, changeMode);
     }).join('')}`
   }
@@ -35,7 +37,7 @@
   function createLi(stockItem, changeMode) {
     const lastTradePrice = Math.trunc(stockItem.LastTradePriceOnly * 100) / 100;
     const stockChange = getChangeValue(stockItem, changeMode);
-    const changeClass = stockItem.PercentChange[0] === '+' ? 'change-plus' : 'change-minus';
+    const changeClass = stockItem.PercentChange[0] === '-' ? 'change-minus': 'change-plus';
 
     let li =
       `<li>
@@ -59,13 +61,21 @@
   function getChangeValue(stockItem, changeMode) {
     console.log(`getChangeValue ${changeMode}`);
     if (changeMode === 'change') {
-      return (Math.trunc(stockItem.Change * 10)) / 10;
+      let res = (Math.trunc(stockItem.Change * 10)) / 10;
+      if(res.toString()[0] !== '-'){
+        res = '+'+ res;
+      }
+      return res;
     }
     else if (changeMode === 'percent') {
-      return stockItem.PercentChange;
+      let res = (Math.trunc(stockItem.PercentChange * 100)) / 100+'%';
+      if(res[0] !== '-'){
+        res = '+'+ res;
+      }
+      return res;
     }
     else {
-      return `${stockItem.tempChange}B`;
+      return `${(Math.trunc(stockItem.MarketCapitalization * 10)) / 10}B`;
     }
   }
 
@@ -83,16 +93,106 @@
 
   /* public */
 
-  function renderMain(stocks,changeMode,layout) {
+  function renderView(stocks,changeMode,layout,filterFields){
     Controller = window.Stockr.controller;
+    if (layout==='home') {
+      renderAppHeader();
+      renderHomeAndFilterMain(stocks, changeMode, layout);
+    }
+    else if (layout==='filter'){
+      let filteredStocks = Controller.filterStocks();
+      renderAppHeader();
+      renderHomeAndFilterMain(filteredStocks, changeMode, layout);
+      addFilterForm(filterFields);
+    }
+    else if(layout==='search'){
+      renderSearchView();
+    }
+  }
+
+  function addFilterForm(filterFields){
+
+    const mainElement = document.querySelector('main');
+    mainElement.innerHTML = `
+      <div class="filter-header">
+        <hr>
+        <div class="filter-header-content">
+          <ul class="filter-params">
+            <li class="filter-param short-filter-param">
+              <label for="Name-filter">By Name</label>
+              <input type="text" id="Name-filter" placeholder="${filterFields.byName}"/>
+            </li>
+            <li class="filter-param short-filter-param">
+              <label for="gain-filter">By Gain</label>
+              <select id="gain-filter" value="${filterFields.byGain}">
+                <option value="gaining">Gaining</option>
+                <option value="losing">Losing</option>
+                <option value="all" selected>All</option>
+              </select>
+            </li>
+            <li class="filter-param long-filter-param">
+              <label for="range-from-filter">By Range: From</label>
+              <input type="text" id="range-from-filter" placeholder="${filterFields.byRangeFrom}"/>
+            </li>
+            <li class="filter-param long-filter-param">
+              <label for="range-to-filter">By Range: To</label>
+              <input type="text" id="range-to-filter" placeholder="${filterFields.byRangeTo}"/>
+            </li>
+          </ul>
+          <button class="apply-filter-button" data-type="apply-filter-button">Apply</button>
+        </div>
+      </div>
+    `
+    + mainElement.innerHTML;
+    // mainElement.querySelector('select[value]');
+  }
+
+  function renderAppHeader(){
+    const headerElement = document.querySelector('header');
+    headerElement.innerHTML = `
+    <span class="stokr-header">STOKR</span>
+        <nav>
+          <ul class="app-nav-buttons">
+            <li>
+              <a class="search-button" data-id="search-button" href="#search"><img src="assets/svg/search.svg" data-type="search-button"></a>
+            </li>
+            <li>
+              <button class="refresh-button" data-id="refresh-button"><img src="assets/svg/refresh.svg"
+                                                                           data-type="refresh-button"></button>
+            </li>
+            <li>
+              <button class="filter-button" data-id="filter-button"><img src="assets/svg/filter.svg"
+                                                                         data-type="filter-nav-button"></button>
+            </li>
+            <li>
+              <button class="settings-button" data-id="settings-button"><img src="assets/svg/settings.svg"
+                                                                             data-type="settings-button"></button>
+            </li>
+          </ul>
+        </nav>`
+  }
+
+  function renderSearchView(){
+    const mainElement = document.querySelector('main');
+    mainElement.innerHTML = ``;
+    const headerElement = document.querySelector('header');
+    headerElement.innerHTML=`
+    <div class="search">
+      <input type="text" class="search-input">
+      <a class="cancel-search-button" href="#">Cancel</a> 
+    </div>
+    <hr>`;
+  }
+
+  function renderHomeAndFilterMain(stocks,changeMode,layout) {
     const mainElement = document.querySelector('main');
     console.log(`renderMain change mode ${changeMode}`);
-    mainElement.innerHTML = `
+      mainElement.innerHTML = `
       <ul class="stock-list">
-        ${createList(stocks,changeMode)}
+        ${createList(stocks, changeMode)}
       </ul>`;
-    setFirstLastArrowButtons();
-    setArrowButtonsDisplay(layout);
+      setFirstLastArrowButtons();
+      setArrowButtonsDisplay(layout);
   }
 
   function setArrowButtonsDisplay(layout)
@@ -109,12 +209,6 @@
     });
   }
 
-  // function toggleHideBySelector(selector) {
-  //   const elements = document.querySelectorAll(selector);
-  //   elements.forEach((element) => {
-  //     element.classList.toggle("hide");
-  //   });
-  // }
 
   function enableAllNavButtons(){
     const navButtons = document.querySelectorAll('.app-nav-buttons button');
@@ -127,11 +221,21 @@
     const appElement = document.querySelector('.app');
     appElement.addEventListener('click', function (event) {
       const targetDataType = event.target.dataset.type;
-      console.log(targetDataType);
       if (clickEventHandlers[targetDataType]) {
         clickEventHandlers[targetDataType](event);
       }
-    })
+    });
+    window.addEventListener('hashchange', function () {
+        hashChangedHandler();
+      })
+  }
+
+  function hashChangedHandler(){
+    console.log('hashChangedHandler');
+    const hash = window.location.hash.slice(1);
+    // if (hash === 'search'){
+      Controller.hashChanged(hash);
+    // }
   }
 
   function arrowButtonsClick(event) {
@@ -157,6 +261,10 @@
     Controller.disableInactiveNavBarButtons();
   }
 
+  function refreshButtonClick(){
+
+  }
+
   function changeButtonClick() {
     Controller.changeButtonClick();
   }
@@ -167,7 +275,7 @@
   }
 
   window.Stockr.view = {
-    renderMainElement: renderMain,
+    renderMainElement: renderView,
     // toggleHideBySelector : toggleHideBySelector,
     toggleDisplayBySelector : toggleDisplayBySelector,
     enableAllNavButtons : enableAllNavButtons,
