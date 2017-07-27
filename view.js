@@ -11,11 +11,12 @@
     'change-button': changeButtonClick,
     'up-down-buttons': arrowButtonsClick,
     'filter-nav-button': filterNavButtonClick,
-    'refresh-nav-button' : refreshButtonClick,
-    'apply-filter-button' : applyFilterStocks
+    'refresh-button': refreshButtonClick,
+    'apply-filter-button': applyFilterStocks,
+    'add-button' : addStockClick
   };
 
-  function applyFilterStocks(){
+  function applyFilterStocks() {
     let filterFields = {};
     filterFields.byName = document.querySelector('input[id="Name-filter"]').value;
     const gainFilterElement = document.querySelector('select[id="gain-filter"]');
@@ -27,9 +28,9 @@
     Controller.renderMain(filteredStocks);
   }
 
-  function createList(stocks,changeMode){
+  function createList(stocks, changeMode) {
     console.log(`createList stocks ${stocks}`);
-    return `${stocks.map ( function(stock) {
+    return `${stocks.map(function (stock) {
       return createLi(stock, changeMode);
     }).join('')}`
   }
@@ -37,7 +38,7 @@
   function createLi(stockItem, changeMode) {
     const lastTradePrice = Math.trunc(stockItem.LastTradePriceOnly * 100) / 100;
     const stockChange = getChangeValue(stockItem, changeMode);
-    const changeClass = stockItem.PercentChange[0] === '-' ? 'change-minus': 'change-plus';
+    const changeClass = stockItem.PercentChange[0] === '-' ? 'change-minus' : 'change-plus';
 
     let li =
       `<li>
@@ -62,15 +63,15 @@
     console.log(`getChangeValue ${changeMode}`);
     if (changeMode === 'change') {
       let res = (Math.trunc(stockItem.Change * 10)) / 10;
-      if(res.toString()[0] !== '-'){
-        res = '+'+ res;
+      if (res.toString()[0] !== '-') {
+        res = '+' + res;
       }
       return res;
     }
     else if (changeMode === 'percent') {
-      let res = (Math.trunc(stockItem.PercentChange * 100)) / 100+'%';
-      if(res[0] !== '-'){
-        res = '+'+ res;
+      let res = (Math.trunc(stockItem.PercentChange * 100)) / 100 + '%';
+      if (res[0] !== '-') {
+        res = '+' + res;
       }
       return res;
     }
@@ -86,31 +87,49 @@
       firstLi.setAttribute("disabled", "true");
     }
     const lastLi = mainElement.querySelector('li:last-of-type .down-button')
-    if (lastLi){
+    if (lastLi) {
       lastLi.setAttribute("disabled", "true");
     }
   }
 
   /* public */
 
-  function renderView(stocks,changeMode,layout,filterFields){
+  function renderView(stocks, changeMode, layout, filterFields) {
     Controller = window.Stockr.controller;
-    if (layout==='home') {
+    if (layout === 'home') {
       renderAppHeader();
       renderHomeAndFilterMain(stocks, changeMode, layout);
     }
-    else if (layout==='filter'){
+    else if (layout === 'filter') {
       let filteredStocks = Controller.filterStocks();
       renderAppHeader();
       renderHomeAndFilterMain(filteredStocks, changeMode, layout);
       addFilterForm(filterFields);
     }
-    else if(layout==='search'){
-      renderSearchView();
+    else if (layout === 'search') {
+      renderSearchHeader();
+      renderSearchMain();
+      addKeyUpEventListener();
     }
   }
 
-  function addFilterForm(filterFields){
+  function addKeyUpEventListener() {
+    document.querySelector('.search-header input')
+      .addEventListener("keyup", function (event) {
+        if (event.keyCode === 13) {
+          console.log(`KeyUpEventHandler: input is: ${event.target.value}`);
+          Controller.searchStocks(event.target.value);
+        }
+      });
+  }
+
+  function addStockClick(event){
+    const symbol = event.target.getAttribute('data-symbol');
+    console.log('addStockClick: add symbol'+symbol);
+    Controller.addSymbolToList(symbol);
+  }
+
+  function addFilterForm(filterFields) {
 
     const mainElement = document.querySelector('main');
     mainElement.innerHTML = `
@@ -143,11 +162,10 @@
         </div>
       </div>
     `
-    + mainElement.innerHTML;
-    // mainElement.querySelector('select[value]');
+      + mainElement.innerHTML;
   }
 
-  function renderAppHeader(){
+  function renderAppHeader() {
     const headerElement = document.querySelector('header');
     headerElement.innerHTML = `
     <span class="stokr-header">STOKR</span>
@@ -172,31 +190,71 @@
         </nav>`
   }
 
-  function renderSearchView(){
+  function renderSearchMain(foundStocks) {
     const mainElement = document.querySelector('main');
-    mainElement.innerHTML = ``;
-    const headerElement = document.querySelector('header');
-    headerElement.innerHTML=`
+    if (!foundStocks || foundStocks.length===0) {
+      const textSearch = foundStocks? 'Not Found' : 'Search';
+      mainElement.innerHTML = `
+    <div class="empty-search">
+      <span class="search-text">${textSearch}</span>
+    </div>
+    `
+    }
+
+    else {
+      mainElement.innerHTML = `
     <div class="search">
+      <ul class="found-stocks-list">
+        ${createFoundStocksList(foundStocks)}
+      </ul>
+    </div>
+    `;
+    }
+  }
+
+  function createFoundStocksList(foundStocks) {
+    return `${foundStocks.map(function (stock) {
+      return createSearchLi(stock);
+    }).join('')}`
+  }
+
+  function createSearchLi(stock) {
+    let li =
+      `<li>
+          <h2 class="symbol-and-name">
+            <span class="symbol">${stock.symbol}</span>
+            <span class="stock-name">${stock.name}</span>
+          </h2>
+          <div class="stock-data">
+            <button data-type="add-button" class="add-button" data-symbol="${stock.symbol}">+</button>
+          </div>
+       </li>`;
+
+    return li;
+  }
+
+  function renderSearchHeader() {
+    const headerElement = document.querySelector('header');
+    headerElement.innerHTML = `
+    <div class="search-header">
       <input type="text" class="search-input">
       <a class="cancel-search-button" href="#">Cancel</a> 
     </div>
     <hr>`;
   }
 
-  function renderHomeAndFilterMain(stocks,changeMode,layout) {
+  function renderHomeAndFilterMain(stocks, changeMode, layout) {
     const mainElement = document.querySelector('main');
     console.log(`renderMain change mode ${changeMode}`);
-      mainElement.innerHTML = `
+    mainElement.innerHTML = `
       <ul class="stock-list">
         ${createList(stocks, changeMode)}
       </ul>`;
-      setFirstLastArrowButtons();
-      setArrowButtonsDisplay(layout);
+    setFirstLastArrowButtons();
+    setArrowButtonsDisplay(layout);
   }
 
-  function setArrowButtonsDisplay(layout)
-  {
+  function setArrowButtonsDisplay(layout) {
     if (layout === 'filter') {
       toggleDisplayBySelector('.up-down-buttons');
     }
@@ -210,7 +268,7 @@
   }
 
 
-  function enableAllNavButtons(){
+  function enableAllNavButtons() {
     const navButtons = document.querySelectorAll('.app-nav-buttons button');
     navButtons.forEach(function (button) {
       button.setAttribute("disabled", "false");
@@ -226,15 +284,15 @@
       }
     });
     window.addEventListener('hashchange', function () {
-        hashChangedHandler();
-      })
+      hashChangedHandler();
+    })
   }
 
-  function hashChangedHandler(){
+  function hashChangedHandler() {
     console.log('hashChangedHandler');
     const hash = window.location.hash.slice(1);
     // if (hash === 'search'){
-      Controller.hashChanged(hash);
+    Controller.hashChanged(hash);
     // }
   }
 
@@ -258,28 +316,29 @@
 
     Controller.updateFilterLayout();
 
-    Controller.disableInactiveNavBarButtons();
+    // Controller.disableInactiveNavBarButtons();
   }
 
-  function refreshButtonClick(){
-
+  function refreshButtonClick() {
+    Controller.refreshButtonClick();
   }
 
   function changeButtonClick() {
     Controller.changeButtonClick();
   }
 
-  function turnButtonGreen(selector){
+  function turnButtonGreen(selector) {
     const button = document.querySelector(selector);
     button.classList.toggle("green-button");
   }
 
   window.Stockr.view = {
-    renderMainElement: renderView,
+    renderSearchMain :renderSearchMain,
+    renderView: renderView,
     // toggleHideBySelector : toggleHideBySelector,
-    toggleDisplayBySelector : toggleDisplayBySelector,
-    enableAllNavButtons : enableAllNavButtons,
-    addEventListeners : addEventListeners
+    toggleDisplayBySelector: toggleDisplayBySelector,
+    enableAllNavButtons: enableAllNavButtons,
+    addEventListeners: addEventListeners
   }
 
 }());

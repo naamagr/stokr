@@ -2,6 +2,7 @@
 
   const SERVER_URL = 'http://localhost:7000';
   const REQUEST_URL = '/quotes?q=';
+  const SEARCH_URL = '/search?q=';
 
   'use strict';
 
@@ -50,7 +51,7 @@
 
   function filterStocks(filterFields) {
     debugger;
-    if (!filterFields){
+    if (!filterFields) {
       filterFields = Model.getFilterValues();
     }
     saveFilterFields(filterFields);
@@ -183,7 +184,7 @@
     Controller.disableInactiveNavBarButtons();
   }
 
-  function fetchStocksAndRender() {
+  function fetchStocksAndRender(render) {
     // return fetch('mocks/stocks.json')
     return fetch(SERVER_URL + REQUEST_URL + Model.getDisplayedStocksSymbols().toString())
       .then((response) => response.json())
@@ -194,9 +195,14 @@
 
         return Model.getStocksData()
       })
-      .then(renderMain)
-      .catch(function () {
-        console.log('error');
+      .then((stocks) => {
+        if (render) {
+          console.log('refresh');
+          renderMain(stocks)
+        }
+      })
+      .catch(function (e) {
+        console.log(e);
       });
   }
 
@@ -217,13 +223,16 @@
     console.log(`renderMain Model.getCurrentChangeViewIndex() ${Model.getCurrentChangeViewIndex()}`);
     const changeMode = changeModes[Model.getCurrentChangeViewIndex()];
     const layout = Model.getCurrentLayout();
-    View.renderMainElement(stockData, changeMode, layout,Model.getFilterValues());
+    View.renderView(stockData, changeMode, layout, Model.getFilterValues());
   }
 
   function saveUiState() {
-    localStorage.removeItem('stokr-uiState');
+    // localStorage.removeItem('stokr-uiState');
     console.log('saving ui state');
+    console.log(Model.getUiState());
+    debugger;
     localStorage.setItem('stokr-uiState', JSON.stringify(Model.getUiState()));
+    // console.log(JSON.stringify(Model.setUiState()));
 
   }
 
@@ -234,26 +243,51 @@
     }
 
   }
-  function refreshButtonClick(){
 
+  function refreshStocks() {
+    console.log('refreshButtonClick');
+    // fetchUiState();
+    fetchStocksAndRender(true);
+
+  }
+
+  function searchStocks(searchString) {
+    return fetch(SERVER_URL + SEARCH_URL + searchString)
+      .then((response) => response.json())
+      .then((data) => {
+        console.log(data);
+        console.log('searchStocks' + data.ResultSet.Result);
+        View.renderSearchMain(data.ResultSet.Result);
+      })
+      .catch(function (e) {
+        console.log(e);
+      });
+  }
+
+  function addSymbolToList(symbol) {
+    Model.getDisplayedStocksSymbols().push(symbol);
+    fetchStocksAndRender(false);
   }
 
   function init() {
     fetchUiState();
-    fetchStocksAndRender();
+    fetchStocksAndRender(true);
     window.Stockr.view.addEventListeners();
+    setInterval(refreshStocks, 300000);
   }
 
   window.Stockr.controller = {
+    searchStocks: searchStocks,
     swapStocks: swapStocks,
     updateFilterLayout: updateFilterLayout,
     changeButtonClick: changeButtonClick,
     disableInactiveNavBarButtons: disableInactiveNavBarButtons,
     filterStocks: filterStocks,
     hashChanged: hashChanged,
-    renderMain:renderMain,
-    filterNavButtonClick : filterNavButtonClick,
-    refreshButtonClick :refreshButtonClick
+    renderMain: renderMain,
+    filterNavButtonClick: filterNavButtonClick,
+    refreshButtonClick: refreshStocks,
+    addSymbolToList: addSymbolToList,
   };
 
   init();

@@ -29,6 +29,13 @@ body {
   width: 1300px;
 }
 
+main {
+  height: calc(100% - 143px);
+  overflow: scroll;
+  position: relative;
+
+}
+
 main ul {
   padding: 0;
 }
@@ -50,7 +57,7 @@ header {
 }
 
 .app-nav-buttons button,
-.app-nav-buttons a{
+.app-nav-buttons a {
   margin-right: 23px;
   background-color: white;
   border: none;
@@ -58,7 +65,7 @@ header {
 }
 
 .app-nav-buttons button img,
-.app-nav-buttons a img{
+.app-nav-buttons a img {
   width: auto;
   height: 44px;
 }
@@ -90,7 +97,6 @@ header {
   justify-content: space-around;
   padding-left: 29px;
 
-
 }
 
 .filter-param {
@@ -110,7 +116,6 @@ header {
   font-family: inherit;
   font-size: inherit;
 }
-
 
 .filter-params label {
   height: 31px;
@@ -155,20 +160,43 @@ hr {
 
 /* ---------------Search------------------------*/
 
-.search{
+.search-text{
+  position: absolute;
+  left: 542px;
+  top:461px;
+  width: 218.3px;
+  height: 38px;
+  font-family: HelveticaNeueW01-55Roman;
+  font-size: 33px;
+  text-align: center;
+  color: #868686;
+}
+.search-header {
   position: relative;
 }
 
-.search input{
+.empty-search {
+  width: 100%;
+  height: 100%;
+  background: url("../assets/svg/search-place-holder.svg");
+  background-repeat: no-repeat;
+  background-position: 536px 162px;}
+
+.search-header input {
+  outline: none;
   width: 1250px;
   height: 62px;
   border-radius: 20px;
   background-color: #ffffff;
   border: solid 1px #408be3;
   margin-bottom: 34px;
+  padding-left: 20px;
+  font-family: HelveticaNeueW01-55Roman;
+  font-size: 26px;
+  color: #607982;
 }
 
-.search a{
+.search-header a {
   text-decoration: none;
   position: absolute;
   top: 16px;
@@ -180,11 +208,43 @@ hr {
   color: #41bf15;
 }
 
+/*.found-stocks-list{*/
+/*padding-left: 29px;*/
+/*}*/
+.found-stocks-list .symbol-and-name {
+  flex-grow: 1;
+  /*width: 465px;*/
+  height: 45px;
+  font-family: Avenir;
+  font-size: 33px;
+  font-weight: 300;
+  font-style: normal;
+  font-stretch: normal;
+  line-height: normal;
+  letter-spacing: normal;
+  color: #59737c;
+}
 
+.add-button {
+  width: 69px;
+  height: 56px;
+  object-fit: contain;
+  border: none;
+  font-size: 2rem;
+  color: white;
+  border-radius: 10px;
+  background-color: #41bf15;
+}
+
+.found-stocks-list .symbol-and-name .stock-name {
+  color: #1c2527;
+  margin-left: 20px;
+}
 
 /* ----------------Stock data--------------------*/
 
-ul.stock-list li {
+ul.stock-list li,
+.found-stocks-list li {
   border: solid 1px #e5e5e5;
   padding-left: 29px;
   justify-content: space-between;
